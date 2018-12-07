@@ -28,10 +28,13 @@ def ImageNetData(args):
     #image_datasets['train'] = datasets.ImageFolder(os.path.join(args.data_dir, 'ILSVRC2012_img_train'), data_transforms['train'])
 
     image_datasets['train'] = ImageNetTrainDataSet(os.path.join(args.data_dir, 'list_train_3600.txt'),
-                                           os.path.join(args.data_dir, 'list_train_3600.txt'),
+                                           os.path.join(args.data_dir,'photos_new'),
                                            data_transforms['train'])
+    '''for i,(input, labels) in enumerate(image_datasets['train']):
+        print(labels)
+        print("------------")'''
     image_datasets['val'] = ImageNetValDataSet(os.path.join(args.data_dir, 'list_val_3600.txt'),
-                                               os.path.join(args.data_dir, 'list_val_3600.txt'),
+                                               os.path.join(args.data_dir, 'photos_new'),
                                                data_transforms['val'])
 
     # wrap your data and label into Tensor
@@ -45,7 +48,7 @@ def ImageNetData(args):
     return dataloders, dataset_sizes
 
 class ImageNetTrainDataSet(torch.utils.data.Dataset):
-    def __init__(self, root_dir, img_label, data_transforms):
+    def __init__(self, root_dir, root_d, data_transforms):
         '''label_array = scio.loadmat(img_label)['synsets']
         label_dic = {}
         for i in  range(1000):
@@ -53,6 +56,7 @@ class ImageNetTrainDataSet(torch.utils.data.Dataset):
 
         self.data_transforms = data_transforms
         self.root_dir = root_dir
+        self.root_d = root_d
         self.img_path, self.label_dic = self.read_from_train_txt()
         self.imgs = self._make_dataset()
     def __len__(self):
@@ -77,10 +81,14 @@ class ImageNetTrainDataSet(torch.utils.data.Dataset):
         for line in lines:
             path_label = line.split(' ')
             path = path_label[0]
-            label = path_label[1]
-	   
-            img_path.append(os.path.join(self.root_dir, path))
-            label_dict[os.path.join(self.root_dir, path)] = label
+            label = path_label[1].split('\n')[0]
+            #print(label)
+            #print("----------")	   
+            img_path.append(os.path.join(self.root_d, path))
+            try:
+                label_dict[os.path.join(self.root_d, path)] = int(label)
+            except:
+                print(label)
         return img_path, label_dict
 
     def _make_dataset(self):
@@ -100,7 +108,10 @@ class ImageNetTrainDataSet(torch.utils.data.Dataset):
                         item = (path, class_to_idx[target])
                         images.append(item)   '''
         images =  list(self.label_dic.items())
-            
+        print(len(images))   
+        '''for i, (inputs, labels) in enumerate(images):
+            print(labels)
+            print("--------------")'''
         return images
 
     def _is_image_file(self, filename):
@@ -118,10 +129,10 @@ class ImageNetValDataSet(torch.utils.data.Dataset):
         #img_names = os.listdir(img_path)
         #img_names.sort()
         #self.img_path = [os.path.join(img_path, img_name) for img_name in img_names]
-        with open(img_label,"r") as input_file:
+        with open(img_path,"r") as input_file:
             lines = input_file.readlines()
             self.img_label = [(line.split('/')[0]) for line in lines]
-            self.img_path = [os.path.join(img_path, line) for line in lines]
+            self.img_path = [os.path.join(img_label, line.split('\n')[0]) for line in lines]
     
     def __len__(self):
         return len(self.img_path)

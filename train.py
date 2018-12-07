@@ -44,10 +44,16 @@ def train_model(args, model, criterion, optimizer, scheduler, num_epochs, datase
 
             tic_batch = time.time()
             # Iterate over data.
-            for i, (inputs, labels) in enumerate(dataloders[phase]):
+            for i, (inputs, labels) in enumerate(dataloders[phase]): 
                 # wrap them in Variable
                 if use_gpu:
                     inputs = Variable(inputs.cuda())
+                    '''
+                    if isinstance(labels, tuple):
+                        labels = (labels[0].cuda(), labels[1].cuda())
+                    else:
+                        labels = labels.cuda()
+                    '''
                     labels = Variable(labels.cuda())
                 else:
                     inputs, labels = Variable(inputs), Variable(labels)
@@ -68,7 +74,10 @@ def train_model(args, model, criterion, optimizer, scheduler, num_epochs, datase
                 # statistics
                 running_loss += loss.data[0]
                 running_corrects += torch.sum(preds == labels.data)
-
+                '''print("preds:")
+                print(preds)
+                print("labels.data")
+                print(labels.data)'''
                 batch_loss = running_loss / ((i+1)*args.batch_size)
                 batch_acc = running_corrects / ((i+1)*args.batch_size)
 
@@ -106,7 +115,7 @@ if __name__ == '__main__':
     parser.add_argument('--num-epochs', type=int, default=100)
     parser.add_argument('--lr', type=float, default=0.045)
     parser.add_argument('--num-workers', type=int, default=0)
-    parser.add_argument('--gpus', type=str, default="1")
+    parser.add_argument('--gpus', type=str, default="0")
     parser.add_argument('--print-freq', type=int, default=10)
     parser.add_argument('--save-epoch-freq', type=int, default=1)
     parser.add_argument('--save-path', type=str, default="/disk/private-data/yy/CardMatching/new_data/pytorch_output")
@@ -116,7 +125,10 @@ if __name__ == '__main__':
 
     # read data
     dataloders, dataset_sizes = ImageNetData(args)
-
+    '''print("yxyy")
+    for i, (input, labels) in enumerate(dataloders["train"]):
+        print(labels)
+        print("-------------")'''
     # use gpu or not
     use_gpu = torch.cuda.is_available()
     print("use_gpu:{}".format(use_gpu))
@@ -132,11 +144,13 @@ if __name__ == '__main__':
             model.load_state_dict(base_dict)
         else:
             print(("=> no checkpoint found at '{}'".format(args.resume)))
+    for i in args.gpus.strip().split(','):
+            print(i)
 
     if use_gpu:
         model = model.cuda()
         model = torch.nn.DataParallel(model, device_ids=[int(i) for i in args.gpus.strip().split(',')])
-
+        
     # define loss function
     criterion = nn.CrossEntropyLoss()
 
