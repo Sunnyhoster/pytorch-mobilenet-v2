@@ -67,6 +67,7 @@ class ImageNetTrainDataSet(torch.utils.data.Dataset):
         img = Image.open(data).convert('RGB')
         if self.data_transforms is not None:
             try:
+                #print("getitem  ing")
                 img = self.data_transforms(img)
             except:
                 print("Cannot transform image: {}".format(self.img_path[item]))
@@ -128,18 +129,42 @@ class ImageNetValDataSet(torch.utils.data.Dataset):
         self.data_transforms = data_transforms
         #img_names = os.listdir(img_path)
         #img_names.sort()
+        self.img_path = img_path
+        self.img_label = img_label
         #self.img_path = [os.path.join(img_path, img_name) for img_name in img_names]
-        with open(img_path,"r") as input_file:
+        self.img_label_list, self.img_path_list = self.get_img_label_and_img_path_list()
+        '''with open(img_path,"r") as input_file:
             lines = input_file.readlines()
-            self.img_label = [(line.split('/')[0]) for line in lines]
-            self.img_path = [os.path.join(img_label, line.split('\n')[0]) for line in lines]
+            for line in lines:
+                if len(line.split(' ')) == 1:
+                    self.img_label.append(line.split('/')[0])
+                    self.img_path.append(os.path.join(img_label, line.split('\n')[0]))'''
     
     def __len__(self):
         return len(self.img_path)
 
+    def get_img_label_and_img_path_list(self):
+        img_label_list = []
+        img_path_list = []
+        with open(self.img_path,"r") as input_file:
+            lines = input_file.readlines()
+            for line in lines:
+                if len(line.split(' ')) == 1:
+                    img_label_list.append(line.split('/')[0])
+                    img_path_list.append(os.path.join(self.img_label, line.split('\n')[0]))
+        return img_label_list, img_path_list
+    
     def __getitem__(self, item):
-        img = Image.open(self.img_path[item]).convert('RGB')
-        label = self.img_label[item]
+        try:
+            img = Image.open(self.img_path_list[item]).convert('RGB')
+        except:
+            print(self.img_path_list[item])
+        label_check_dict = {}
+        with open("/disk/private-data/yy/CardMatching/new_data/label_list_3600.txt") as input_file:
+            lines = input_file.readlines()
+            for i, line in enumerate(lines):
+                label_check_dict[line.split('\n')[0]] = i
+        label = label_check_dict[self.img_label_list[item]]
         if self.data_transforms is not None:
             try:
                 img = self.data_transforms(img)

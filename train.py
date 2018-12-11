@@ -112,7 +112,7 @@ if __name__ == '__main__':
     parser.add_argument('--data-dir', type=str, default="/disk/private-data/yy/CardMatching/new_data")
     parser.add_argument('--batch-size', type=int, default=16)
     parser.add_argument('--num-class', type=int, default=189)
-    parser.add_argument('--num-epochs', type=int, default=100)
+    parser.add_argument('--num-epochs', type=int, default=2)
     parser.add_argument('--lr', type=float, default=0.045)
     parser.add_argument('--num-workers', type=int, default=0)
     parser.add_argument('--gpus', type=str, default="0")
@@ -125,7 +125,10 @@ if __name__ == '__main__':
 
     # read data
     dataloders, dataset_sizes = ImageNetData(args)
+    print("finish reading data")
     '''print("yxyy")
+                rf phase == 'train' and i%args.print_freq == 0:
+                    print('[Epoch {}/{}]-[batch:{}/{}] lr:{:.4f} {} Loss: {:.6f}  Acc: {:.4f}  Time: {:.4f}batch/sec'.format(
     for i, (input, labels) in enumerate(dataloders["train"]):
         print(labels)
         print("-------------")'''
